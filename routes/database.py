@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
 from models.database import CarDB
 from database.sqlite3 import SQLCars
+from misc.consts import LOGGER
 
 import sqlmodel
 
@@ -16,10 +17,11 @@ DATA_BASE = SQLCars()
 async def add_car(car: CarDB) -> dict:
 
     if car:
-        await DATA_BASE.add_car(car.first_name, car.car_number)
+        result = await DATA_BASE.add_car(car.car_number)
 
+        LOGGER.event(f"Действие с добавлением номера в БД: {result}")
         return {
-            "result": "SUCCESS",
+            "result": result,
             "desc": "",
             "data": {}
         }

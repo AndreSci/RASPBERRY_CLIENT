@@ -1,16 +1,17 @@
 import os
 import configparser
+from misc.consts import GlobalConstsControl
 
 
 class SettingsIni:
 
     def __init__(self):
         # general settings
-        self.settings_ini = dict()
         self.settings_file = configparser.ConfigParser()
 
     def create_settings(self) -> dict:
         """ Функция получения настройки из файла settings.ini. """
+
         error_mess = 'Успешная загрузка данных из settings.ini'
         ret_value = dict()
         ret_value["result"] = False
@@ -20,15 +21,11 @@ class SettingsIni:
             try:
                 self.settings_file.read("settings.ini", encoding="utf-8")
                 # general settings ----------------------------------------
-                self.settings_ini["host"] = self.settings_file["GENERAL"]["HOST"]
-                self.settings_ini["port"] = self.settings_file["GENERAL"]["PORT"]
+                GlobalConstsControl.set_server_host(self.settings_file["GENERAL"]["SERVER_HOST"])
+                GlobalConstsControl.set_server_port(self.settings_file["GENERAL"]["SERVER_PORT"])
 
-                if "LOG_PATH" in self.settings_file["GENERAL"]:
-                    self.settings_ini["log_path"] = self.settings_file["GENERAL"]["LOG_PATH"]
-                else:
-                    self.settings_ini["log_path"] = './logs/'
-
-                self.settings_ini['CAMERAS'] = self.settings_file["CAMERAS"]
+                GlobalConstsControl.set_client_host(self.settings_file["GENERAL"]["CLIENT_HOST"])
+                GlobalConstsControl.set_client_port(self.settings_file["GENERAL"]["CLIENT_PORT"])
 
                 ret_value["result"] = True
 
@@ -42,10 +39,5 @@ class SettingsIni:
 
         ret_value["desc"] = error_mess
 
+        print(error_mess)
         return ret_value
-
-    def take_settings(self):
-        return self.settings_ini
-
-    def take_log_path(self):
-        return self.settings_ini["log_path"]

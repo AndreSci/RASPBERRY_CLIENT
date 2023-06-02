@@ -1,8 +1,10 @@
 import threading
 import os
 import datetime
+import inspect
 
-from misc.utility import SettingsIni
+# Данные для logger
+LOGGER_PATH = os.path.join(os.getcwd(), "logs\\")
 
 
 class BColors:
@@ -34,16 +36,13 @@ def test_dir(log_path) -> bool:
 
 class Logger:
     """ Класс вывода данных в консоль и запись в файл """
-    def __init__(self, class_settings: SettingsIni):
-        self.set_ini = class_settings
+    def __init__(self):
         self.font_color = False
         self.log_guard = threading.Lock()
 
     def add_log(self, text: str, print_it=True):
         """ Обшивает текст датой, табуляцией и переходом на новую строку"""
         ret_value = False
-
-        log_path = self.set_ini.take_log_path()
         today = datetime.datetime.today()
 
         for_file_name = str(today.strftime("%Y-%m-%d"))
@@ -52,12 +51,12 @@ class Logger:
         # Создаем лог
         mess = date_time + "\t" + text + "\n"
 
-        if test_dir(log_path):
+        if test_dir(LOGGER_PATH):
 
-            if log_path[-1] == '\\' or log_path[-1] == '/':
-                pass  # Захотелось использовать pass
-            else:
-                log_path = log_path + '/'
+            # if LOGGER_PATH[-1] == '\\' or LOGGER_PATH[-1] == '/':
+            #     pass  # Захотелось использовать pass
+            # else:
+            #     log_path = LOGGER_PATH + '/'
 
             with self.log_guard:  # Защищаем поток
 
@@ -72,8 +71,38 @@ class Logger:
                         print(date_time + "\t" + text)
 
                 # Открываем и записываем логи в файл отчета.
-                with open(f'{log_path}{for_file_name}.log', 'a', encoding='utf-8') as file:
+                with open(f'{LOGGER_PATH}{for_file_name}.log', 'a', encoding='utf-8') as file:
                     file.write(mess)
                     ret_value = True
 
         return ret_value
+
+    def event(self, text: str, print_it=True):
+        # возьми текущий фрейм объект (frame object)
+        current_frame = inspect.currentframe()
+
+        # получи фрейм объект, который его вызвал
+        caller_frame = current_frame.f_back
+
+        # возьми у вызвавшего фрейма исполняемый в нём объект типа "код" (code object)
+        code_obj = caller_frame.f_code
+
+        # и получи его имя
+        code_obj_name = code_obj.co_name
+
+        return self.add_log(f"EVENT\t{code_obj_name}\t{text}", print_it)
+
+    def exception(self, text: str, print_it=True):
+        # возьми текущий фрейм объект (frame object)
+        current_frame = inspect.currentframe()
+
+        # получи фрейм объект, который его вызвал
+        caller_frame = current_frame.f_back
+
+        # возьми у вызвавшего фрейма исполняемый в нём объект типа "код" (code object)
+        code_obj = caller_frame.f_code
+
+        # и получи его имя
+        code_obj_name = code_obj.co_name
+
+        return self.add_log(f"EXCEPTION\t{code_obj_name}\t{text}", print_it)
